@@ -17,7 +17,7 @@ Tecnologias utilizadas:
 - GET em https://meusjogosfavoritos.herokuapp.com/ - retorna appid e nome de todos os jogos da steam
 - GET em https://meusjogosfavoritos.herokuapp.com/:id - retorna detalhes sobre o jogo correspondente ao parâmetro id da url
 
-- POST em https://meusjogosfavoritos.herokuapp.com/favorite/ - salva no banco de dados o appid e a nota para um jogo específico. Utiliza a header da requisição para especificar o usuário.
+- POST em https://meusjogosfavoritos.herokuapp.com/favorite/ - salva no banco de dados o appid e a nota(aceita apenas notas entre 1 e 5) para um jogo específico. Utiliza a header da requisição para especificar o usuário.
 #### Estrutura da header:
 ```
 user: "nome-de-usuário"
