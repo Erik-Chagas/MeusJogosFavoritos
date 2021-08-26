@@ -20,7 +20,7 @@ Tecnologias utilizadas:
 - POST em https://meusjogosfavoritos.herokuapp.com/favorite/ - salva no banco de dados o appid e a nota(aceita apenas notas entre 1 e 5) para um jogo específico. Utiliza a header da requisição para especificar o usuário.
 #### Estrutura da header:
 ```
-user: "nome-de-usuário"
+user-hash: "nome-de-usuário"
 ```
 #### Estrutura do body:
 ```
@@ -33,11 +33,11 @@ user: "nome-de-usuário"
 - GET em https://meusjogosfavoritos.herokuapp.com/favorite/ - retorna os jogos e suas respectivas notas, junto com os detalhes de cada jogo. Utiliza a header da requisição para especificar o usuário.
 #### Estrutura da header:
 ```
-user: "nome-de-usuário"
+user-hash: "nome-de-usuário"
 ```
 
 - DELETE em https://meusjogosfavoritos.herokuapp.com/favorite/:appid - deleta do banco de dados um jogo correspondente ao parâmetro appid da url. Utiliza a header da requisição para especificar o usuário.
 #### Estrutura da header:
 ```
-user: "nome-de-usuário"
+user-hash: "nome-de-usuário"
 ```
