@@ -18,20 +18,20 @@ mongoose.connect('mongodb+srv://Erik:12345@cluster0.hfkvb.mongodb.net/myFirstDat
     console.log("não houve conexão")
 });
 
-fetch('https://api.steampowered.com/ISteamApps/GetAppList/v0002/?format=json')
+fetch('https://simple-api-selection.herokuapp.com/list-games/?title=race')
     .then(response => response.json())
     .then(data => {
-        cache.put('steamGameList', data.applist.apps, 3600000)
+        cache.put('steamGameList', data.applist.apps.app, 3600000)
     })
 
 app.get('/', async (req, res) => {
     let games = await cache.get('steamGameList')
     if(games === null)
     {
-        fetch('https://api.steampowered.com/ISteamApps/GetAppList/v0002/?format=json')
+        fetch('https://simple-api-selection.herokuapp.com/list-games/?title=race')
             .then(response => response.json())
             .then(async data => {
-                await cache.put('steamGameList', data.applist.apps, 3600000)
+                await cache.put('steamGameList', data.applist.apps.app, 3600000)
                 games = await cache.get('steamGameList')
                 res.send(games)
             }).catch(err => res.send(err));
@@ -39,21 +39,19 @@ app.get('/', async (req, res) => {
 })
 
 app.get('/favorite/', async (req, res) => {
-    if(req.headers.user === null)
+    if(req.headers['user-hash'] === null)
         return res.status(400).json({
             erro: true,
             message: 'É necessário um nome de usuário'
         })
 
-    const user = await userDB.findOne({user: req.headers.user})
+    const user = await userDB.findOne({user: req.headers['user-hash']})
     if(user === null)
     {
-        return res.status(400).json({
-            erro: true,
-            message: 'Não existe um registro de usuário com esse nome de usuário, tente cadastrar um novo usuário'
-        })
+        let empty = []
+        res.send(empty)
     }else{
-        let gameList = cache.get(`${req.headers.user}`)
+        let gameList = cache.get(`${req.headers['user-hash']}`)
         res.send(gameList)
     }
 })
@@ -82,15 +80,15 @@ const criarGetFavorite = (value1, value2) => {
 }
 
 app.post('/favorite/',  async (req, res) => {
-    if(req.headers.user === null)
+    if(req.headers['user-hash'] === null)
         return res.status(400).json({
             erro: true,
             message: 'É necessário um nome de usuário'
         })
 
-    const user = await userDB.findOne({user: req.headers.user})
+    const user = await userDB.findOne({user: req.headers['user-hash']})
     if(user === null){
-        const data = userDB.create(criarDado(req.headers.user, req.body), (erro) => {
+        const data = userDB.create(criarDado(req.headers['user-hash'], req.body), (erro) => {
             if(erro)
                 return res.status(400).json({
                     erro: true,
@@ -102,7 +100,7 @@ app.post('/favorite/',  async (req, res) => {
                 .then(data => {
                     let gameInfo = []
                     gameInfo.push(data)
-                    cache.put(`${req.headers.user}`, criarGetFavorite(req.body, gameInfo))
+                    cache.put(`${req.headers['user-hash']}`, criarGetFavorite(req.body, gameInfo))
                 })
     
             return res.status(200).json({
@@ -114,12 +112,12 @@ app.post('/favorite/',  async (req, res) => {
         user.games.push(req.body)
         user.save().then(async savedDoc => {
             if(savedDoc === user){
-                let info = await cache.get(`${req.headers.user}`)
+                let info = await cache.get(`${req.headers['user-hash']}`)
                 info.lista.push(req.body)
                 let response = await fetch(`https://store.steampowered.com/api/appdetails?appids=${req.body.appid}`)
                 let json = await response.json()
                 info.detalhes.push(json)
-                cache.put(`${req.headers.user}`, info)
+                cache.put(`${req.headers['user-hash']}`, info)
                 
                 return res.status(200).json({
                     erro: false,
@@ -140,28 +138,26 @@ app.post('/favorite/',  async (req, res) => {
 })
 
 app.delete('/favorite/:appid', async (req, res) => {
-    if(req.headers.user == null)
+    if(req.headers['user-hash'] == null)
         return res.status(400).json({
             erro: true,
             message: 'É necessário um nome de usuário'
         })
         
-    let user = await userDB.findOne({user: req.headers.user})
+    let user = await userDB.findOne({user: req.headers['user-hash']})
 
     if(user === null)
     {
-        return res.status(400).json({
-            erro: true,
-            message: 'Não existe um registro de usuário com esse nome de usuário, tente cadastrar um novo usuário'
-        })
+        let empty = []
+        res.send(empty)
     }else{
         user.games = user.games.filter((e) => e.appid != req.params.appid)
         user.save().then(async savedDoc => {
             if(savedDoc === user){
-                let info = await cache.get(`${req.headers.user}`)
+                let info = await cache.get(`${req.headers['user-hash']}`)
                 info.lista = info.lista.filter((e) => e.appid != req.params.appid)
                 info.detalhes = info.detalhes.filter((e) => e[req.params.appid] === undefined)
-                cache.put(`${req.headers.user}`, info)
+                cache.put(`${req.headers['user-hash']}`, info)
 
                 return res.status(200).json({
                     erro: false,
